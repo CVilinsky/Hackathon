@@ -1,16 +1,16 @@
 import socket
 import struct
-from getch import getch
+import getch
 import time
-from threading import Timer
+import signal
 
-def get_input():
-    x=getch()
-    return x
+TIMEOUT=10
+def inter_timeout(signum, frame):
+    pass
+signal.signal(signal.SIGALRM, inter_timeout)
 
 if __name__ == '__main__':
     while True:
-        TIMEOUT=10
         print("Client started, listening for offer requests...")
         UPD_PORT = 13117
         cache_anointment = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
@@ -39,13 +39,11 @@ if __name__ == '__main__':
         tcp_socket.sendall(bytes("THE Gays", "utf-8"))
 
         print(tcp_socket.recv(1024).decode("utf-8"))
-        timeout=10
-        t=Timer(timeout,print,[''])
-        t.start()
-        message = getch()
+        # signal.alarm(TIMEOUT)
+        x=getch.getch()
+        # signal.alarm(0)
+        message = bytes(x, "utf-8")
         tcp_socket.sendall(message)
-        t.cancel()
-
         server_message = tcp_socket.recv(1024)
         print(server_message.decode("utf-8"))
         tcp_socket.close()
