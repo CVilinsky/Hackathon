@@ -6,6 +6,8 @@ import concurrent.futures
 import random
 import multiprocessing
 from typing import DefaultDict
+# from django.utils.termcolors import colorize
+from colorama import Fore, Style
 
 winners_dict=DefaultDict()
 
@@ -18,16 +20,19 @@ def thread_send_Announcements(upd_socket):
     threading.Timer(1.0, thread_send_Announcements, args=[upd_socket]).start()
     send_broadcast_suggestion(upd_socket)
 
+def randomize_math(): #Randomizes a math question
+    num1=random.choice([1,2,3,4,5])
+    num2=random.choice([1,2,3,4])
+    expected=num1+num2
+    return [expected,f'{num1} + {num2}']
 
-def start_new_game(clientside):
+def start_new_game(clientside,expected):
     start_time = time.time()
-    # task="Please Answer the following question: \n How much is 2+2?"
-    # tcp_socket.sendall(task)
     while time.time() - start_time < 10:
         clientside.settimeout(10)
         try:
-            message = clientside.recv(1024)
-            if message==b'4':
+            message = clientside.recv(1024).decode("utf-8")
+            if message==expected:
                 return ("Winner",time.time())
             else :
                 return ("Looser",time.time())
@@ -38,7 +43,7 @@ def start_new_game(clientside):
 
 if __name__ == '__main__':
     sockets_list = []
-    SERVER_IP = socket.gethostname()
+    SERVER_IP = socket.gethostbyname(socket.gethostname()) 
     PORT_NUM = 2101
     print(f"Server started,listening on IP address {SERVER_IP} \n Come To me baby")
     upd_socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
@@ -58,12 +63,12 @@ if __name__ == '__main__':
             clientside, address_1 = tcp_socket.accept()
             group_name = clientside.recv(1024).decode("utf-8")
             sockets_list.append((clientside, group_name))
-            print(f"Player 1 connected, group name : {group_name} \n Waiting for Player 2")
+            print(f"{Fore.CYAN}Player 1{Style.RESET_ALL} connected, group name : {group_name} \n Waiting for Player 2")
 
             clientside, address_2 = tcp_socket.accept()
             group_name = clientside.recv(1024).decode("utf-8")
             sockets_list.append((clientside, group_name))
-            print(f"Player 2 connected, group name : {group_name} \n Game will start if a few seconds")
+            print(f"{Fore.YELLOW}Player 2{Style.RESET_ALL} connected, group name : {group_name} \n Game will start if a few seconds")
 
             time.sleep(2)
 
@@ -72,16 +77,18 @@ if __name__ == '__main__':
             group1 = sockets_list[0][1]
             group2 = sockets_list[1][1]
 
+            math_problem=randomize_math()
+
             start_message = bytes(
                 "Group 1:\n==\n" + group1 + "\n\nGroup "
                                                                "2:\n==\n" + group2 + "\n"
-                                                                                       "\nPlease Answer the following question: \n How much is 2+2?",
+                                                                                       f"\nPlease Answer the following question: \n How much is {math_problem[1]}?",
                 "utf-8")
 
             for client, group_name in sockets_list:
                 client.sendall(start_message)
-            game1 = executor.submit(start_new_game, sockets_list[0][0])
-            game2 = executor.submit(start_new_game, sockets_list[1][0])
+            game1 = executor.submit(start_new_game, sockets_list[0][0],math_problem[0])
+            game2 = executor.submit(start_new_game, sockets_list[1][0],math_problem[0])
 
             group1_result = game1.result()
             group2_result = game2.result()
@@ -100,27 +107,42 @@ if __name__ == '__main__':
                         result_message = bytes(result_message + f"{group1}", "utf-8")
                         for client, group_name in sockets_list:
                             client.sendall(result_message)
-                        # winners_dict[group1]+=1
+                        try:
+                            winners_dict[group1]+=1
+                        except:
+                            winners_dict[group1]=1
                     else:
                         print(f"{group2} is winner")
                         result_message = bytes(result_message + f"{group2}", "utf-8")
                         for client, group_name in sockets_list:
                             client.sendall(result_message)
-                        # winners_dict[group2]+=1
+                        try:
+                            winners_dict[group2]+=1
+                        except:
+                            winners_dict[group2]=1
                 else:
                     if group2_result[0]=="Winner":
                         print(f"{group2} is winner")
                         result_message = bytes(result_message + f"{group2}", "utf-8")
                         for client, group_name in sockets_list:
                             client.sendall(result_message)
-                        # winners_dict[group2]+=1
+                        try:
+                            winners_dict[group2]+=1
+                        except:
+                            winners_dict[group2]=1
                     else:
                         print(f"{group1} is winner")
                         result_message = bytes(result_message + f"{group1}", "utf-8")
                         for client, group_name in sockets_list:
                             client.sendall(result_message)
-                        # winners_dict[group1]+=1
-            print("Game over, sending out offer requests... ")
+                        try:
+                            winners_dict[group1]+=1
+                        except:
+                            winners_dict[group1]=1
+            if len(winners_dict.keys())!=0:
+                print(f"{max(winners_dict, key=winners_dict.get)} Has the highest score on the server")
+            print(f"{Fore.RED}Game over{Style.RESET_ALL}, sending out offer requests... ")
+
             sockets_list = []
             sending_suggestions_thread = multiprocessing.Process(target=thread_send_Announcements, args=(upd_socket,))
             sending_suggestions_thread.start()

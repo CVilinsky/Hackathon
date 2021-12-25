@@ -36,14 +36,18 @@ if __name__ == '__main__':
         tcp_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         tcp_socket.connect((socket.gethostname(), portnum))
 
-        tcp_socket.sendall(bytes("THE Gays", "utf-8"))
+        tcp_socket.sendall(bytes("Micky and the Fire", "utf-8"))
 
         print(tcp_socket.recv(1024).decode("utf-8"))
-        # signal.alarm(TIMEOUT)
-        x=getch.getch()
-        # signal.alarm(0)
+        try:
+            signal.alarm(TIMEOUT)
+            x=getch.getch()
+            signal.alarm(0)
+        except:
+            x=''
         message = bytes(x, "utf-8")
         tcp_socket.sendall(message)
         server_message = tcp_socket.recv(1024)
         print(server_message.decode("utf-8"))
         tcp_socket.close()
+        time.sleep(1)
