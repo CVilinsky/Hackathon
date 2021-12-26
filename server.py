@@ -93,7 +93,7 @@ if __name__ == '__main__':
             group1_result = game1.result()
             group2_result = game2.result()
 
-            result_message = "Game over! \n The correct answer was 4! \n Congratulations to the winner:"
+            result_message = f"Game over! \n The correct answer was {math_problem[0]}! \n Congratulations to the winner:"
 
             if group1_result[0] =="Tie" and group2_result[0]=="Tie":
                 print("Tie")
