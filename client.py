@@ -15,26 +15,26 @@ if __name__ == '__main__':
         UPD_PORT = 13117
         tcp_connected=False
         while not tcp_connected:
-            cache_anointment = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-            cache_anointment.setsockopt(socket.SOL_SOCKET, socket.SO_BROADCAST, 1)
-            cache_anointment.bind(('', UPD_PORT))
+            udp_sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+            udp_sock.setsockopt(socket.SOL_SOCKET, socket.SO_BROADCAST, 1)
+            udp_sock.bind(('', UPD_PORT))
             stop = False
             data = None
             while not stop:
-                data, addr = cache_anointment.recvfrom(1024)
+                data, addr = udp_sock.recvfrom(1024)
                 if data is None:
                     continue
                 try:
-                    values_message = struct.unpack('ibh', data)
-                    if  (values_message[0] == -1412571974) and (values_message[1] == 2):
+                    recieved_message = struct.unpack('ibh', data)
+                    if  (recieved_message[0] == -1412571974) and (recieved_message[1] == 2): #the format of the invitation
                         stop = True
                 except:
                     continue
-            cache_anointment.close()
+            udp_sock.close()
             print("Received offer from " + str(addr[0]) + " attempting to connect...")
-            portnum = values_message[2]
+            portnum = recieved_message[2] #wanted port number
             # print("Port num " + str(int(portnum)))
-            try:
+            try: #incase doens't connect
                 tcp_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
                 tcp_socket.connect((socket.gethostname(), portnum))
                 tcp_connected=True
