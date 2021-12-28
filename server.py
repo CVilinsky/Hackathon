@@ -6,7 +6,7 @@ import concurrent.futures
 import random
 import multiprocessing
 from typing import DefaultDict
-from colorama import Fore, Style
+from colorama import Fore, Style,Back
 
 winners_dict=DefaultDict(int) #Winners to get the highest score
 
@@ -74,7 +74,7 @@ if __name__ == '__main__':
 
             math_problem=randomize_math()
 
-            start_message = bytes(f"Welcome to Quick Maths.\nPlayer 1: {group1}\nPlayer 2: {group2}\n==\nPlease Answer the following question: \nHow much is {math_problem[1]}?","utf-8")
+            start_message = bytes(f"{Back.BLUE}Welcome to Quick Maths.{Style.RESET_ALL}\n{Fore.CYAN}Player 1: {group1}{Style.RESET_ALL}\n{Fore.YELLOW}Player 2: {group2}{Style.RESET_ALL}\n==\nPlease Answer the following question: \nHow much is {math_problem[1]}?","utf-8")
 
             for clientadd, group_name in sockets_list:
                 clientadd.sendall(start_message)
@@ -88,38 +88,38 @@ if __name__ == '__main__':
 
             if group1_result[0] =="Tie" and group2_result[0]=="Tie":
                 print("Tie")
-                result_message = bytes("Time's up loosers, it a Tie!", "utf-8")
+                result_message = bytes("Time's up {Back.MAGENTA}loosers{Style.RESET_ALL}, it a Tie!", "utf-8")
                 for clientadd, group_name in sockets_list:
                             clientadd.sendall(result_message)
             else:
                 if group1_result[1]<group2_result[1]:
                     if group1_result[0]=="Winner":
-                        print(f"{group1} is winner")
+                        print(f"{group1} are the winner")
                         result_message = bytes(result_message + f"{group1}", "utf-8")
                         for clientadd, group_name in sockets_list:
                             clientadd.sendall(result_message)
                         winners_dict[group1]+=1
                     else:
-                        print(f"{group2} is winner")
+                        print(f"{group2} are the winner")
                         result_message = bytes(result_message + f"{group2}", "utf-8")
                         for clientadd, group_name in sockets_list:
                             clientadd.sendall(result_message)
                         winners_dict[group2]+=1
                 else:
                     if group2_result[0]=="Winner":
-                        print(f"{group2} is winner")
+                        print(f"{group2} are the winner")
                         result_message = bytes(result_message + f"{group2}", "utf-8")
                         for clientadd, group_name in sockets_list:
                             clientadd.sendall(result_message)
                         winners_dict[group2]+=1
                     else:
-                        print(f"{group1} is winner")
+                        print(f"{group1} are the winner")
                         result_message = bytes(result_message + f"{group1}", "utf-8")
                         for clientadd, group_name in sockets_list:
                             clientadd.sendall(result_message)
                         winners_dict[group1]+=1
             if len(winners_dict.keys())!=0:
-                print(f"{max(winners_dict, key=winners_dict.get)} Has the highest score on the server")
+                print(f"{max(winners_dict, key=winners_dict.get)} Has the Highest Score on the Server")
             print(f"{Fore.RED}Game over{Style.RESET_ALL}, sending out offer requests... ")
 
             sockets_list = []
