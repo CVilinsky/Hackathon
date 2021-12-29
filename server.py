@@ -7,12 +7,13 @@ import random
 import multiprocessing
 from typing import DefaultDict
 from colorama import Fore, Style,Back
+import scapy.all
 
 winners_dict=DefaultDict(int) #Winners to get the highest score
 
 def send_broadcast_suggestion(upd_socket):
     message = struct.pack('Ibh', 0xabcddcba, 0x2, 2101)
-    upd_socket.sendto(message, ("<broadcast>", 13117))
+    upd_socket.sendto(message, ("<broadcast>", 1333))
 
 
 def thread_send_Announcements(upd_socket):
@@ -42,7 +43,8 @@ def start_new_game(client,expected): #the game that everyone plays
 
 if __name__ == '__main__':
     sockets_list = []
-    SERVER_IP = socket.gethostbyname(socket.gethostname()) 
+    # SERVER_IP = socket.gethostbyname(socket.gethostname()) 
+    SERVER_IP=scapy.all.get_if_addr('eth1')
     PORT_NUM = 2101
     print(f"Server started,listening on IP address {SERVER_IP} \nCome To me baby")
     upd_socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
@@ -88,7 +90,7 @@ if __name__ == '__main__':
 
             if group1_result[0] =="Tie" and group2_result[0]=="Tie":
                 print("Tie")
-                result_message = bytes("Time's up {Back.MAGENTA}loosers{Style.RESET_ALL}, it a Tie!", "utf-8")
+                result_message = bytes(f"Time's up {Back.MAGENTA}loosers{Style.RESET_ALL}, it a Tie!", "utf-8")
                 for clientadd, group_name in sockets_list:
                             clientadd.sendall(result_message)
             else:

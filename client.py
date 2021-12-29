@@ -3,8 +3,20 @@ import struct
 import getch
 import time
 import signal
+from multiprocessing import Process
 
 TIMEOUT=10
+def getch_func():
+    try:
+        signal.alarm(TIMEOUT)
+        x=getch.getch()
+        signal.alarm(0)
+    except:
+        x=''
+    message = bytes(x, "utf-8")
+    tcp_socket.sendall(message)
+    return
+    
 def inter_timeout(signum, frame):
     pass
 signal.signal(signal.SIGALRM, inter_timeout)
@@ -12,7 +24,7 @@ signal.signal(signal.SIGALRM, inter_timeout)
 if __name__ == '__main__':
     while True:
         print("Client started, listening for offer requests...")
-        UPD_PORT = 13117
+        UPD_PORT = 1333
         tcp_connected=False
         while not tcp_connected:
             udp_sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
@@ -41,7 +53,7 @@ if __name__ == '__main__':
             except:
                 continue
 
-        tcp_socket.sendall(bytes("Micky and the Fire", "utf-8"))
+        tcp_socket.sendall(bytes("The Furries", "utf-8"))
 
         print(tcp_socket.recv(1024).decode("utf-8"))
         try:
@@ -52,7 +64,11 @@ if __name__ == '__main__':
             x=''
         message = bytes(x, "utf-8")
         tcp_socket.sendall(message)
+        # getch_sub=Process(target=getch_func())
+        # getch_sub.start()
         server_message = tcp_socket.recv(1024)
+        # getch_sub.kill()
         print(server_message.decode("utf-8"))
         tcp_socket.close()
         time.sleep(1)
+
