@@ -24,7 +24,7 @@ signal.signal(signal.SIGALRM, inter_timeout)
 if __name__ == '__main__':
     while True:
         print("Client started, listening for offer requests...")
-        UPD_PORT = 1333
+        UPD_PORT = 13117
         tcp_connected=False
         while not tcp_connected:
             udp_sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
@@ -41,6 +41,7 @@ if __name__ == '__main__':
                     if  (recieved_message[0] == -1412571974) and (recieved_message[1] == 2):
                         stop = True
                 except:
+                    print("Couldn't connect")
                     continue
             udp_sock.close()
             print("Received offer from " + str(addr[0]) + " attempting to connect...")
