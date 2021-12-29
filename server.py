@@ -10,9 +10,9 @@ from colorama import Fore, Style,Back
 
 winners_dict=DefaultDict(int) #Winners to get the highest score
 
-def send_broadcast_suggestion(socket_udp):
+def send_broadcast_suggestion(upd_socket):
     message = struct.pack('Ibh', 0xabcddcba, 0x2, 2101)
-    socket_udp.sendto(message, ("<broadcast>", 13117))
+    upd_socket.sendto(message, ("<broadcast>", 13117))
 
 
 def thread_send_Announcements(upd_socket):
