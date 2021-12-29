@@ -82,7 +82,7 @@ if __name__ == '__main__':
 
             for clientadd, group_name in sockets_list:
                 try:
-                    clientadd.sendall(result_message)
+                    clientadd.sendall(start_message)
                 except:
                     print("Couldn't send to one of the clients")
                     pass
