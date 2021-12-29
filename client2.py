@@ -49,9 +49,11 @@ if __name__ == '__main__':
             # print("Port num " + str(int(portnum)))
             try:
                 tcp_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-                tcp_socket.connect((socket.gethostname(), portnum))
+                # print(portnum)
+                tcp_socket.connect((addr[0], portnum))
                 tcp_connected=True
             except:
+                print("Couldn't establish connection")
                 continue
 
         tcp_socket.sendall(bytes("Rami and the Puzis", "utf-8"))
