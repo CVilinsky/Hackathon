@@ -2,9 +2,25 @@ import socket
 import struct
 import getch
 import time
+<<<<<<< HEAD
 import signal #send software interrupts in linux
+=======
+import signal
+from multiprocessing import Process
+>>>>>>> f5ab53682cafd62132909f2f197b05d6b84b96c1
 
 TIMEOUT=10
+def getch_func():
+    try:
+        signal.alarm(TIMEOUT)
+        x=getch.getch()
+        signal.alarm(0)
+    except:
+        x=''
+    message = bytes(x, "utf-8")
+    tcp_socket.sendall(message)
+    return
+    
 def inter_timeout(signum, frame):
     pass
 signal.signal(signal.SIGALRM, inter_timeout)
@@ -39,6 +55,7 @@ if __name__ == '__main__':
                     if  (recieved_message[0] == -1412571974) and (recieved_message[1] == 2): #the format of the invitation
                         stop = True
                 except:
+                    print("Couldn't connect")
                     continue
             udp_sock.close()
             print("Received offer from " + str(addr[0]) + " attempting to connect...")
@@ -46,12 +63,14 @@ if __name__ == '__main__':
             # print("Port num " + str(int(portnum)))
             try: #incase doens't connect
                 tcp_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-                tcp_socket.connect((socket.gethostname(), portnum))
+                # print(addr)
+                tcp_socket.connect((addr[0], portnum))
                 tcp_connected=True
             except:
+                print("Couldn't establish connection")
                 continue
 
-        tcp_socket.sendall(bytes("Micky and the Fire", "utf-8"))
+        tcp_socket.sendall(bytes("The Furries", "utf-8"))
 
         print(tcp_socket.recv(1024).decode("utf-8"))
         try:
@@ -62,7 +81,11 @@ if __name__ == '__main__':
             x=''
         message = bytes(x, "utf-8")
         tcp_socket.sendall(message)
+        # getch_sub=Process(target=getch_func())
+        # getch_sub.start()
         server_message = tcp_socket.recv(1024)
+        # getch_sub.kill()
         print(server_message.decode("utf-8"))
         tcp_socket.close()
         time.sleep(1)
+

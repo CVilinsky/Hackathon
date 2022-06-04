@@ -7,6 +7,7 @@ import random
 import multiprocessing
 from typing import DefaultDict
 from colorama import Fore, Style,Back
+import scapy.all
 
 winners_dict=DefaultDict(int) #Winners to get the highest score
 
@@ -72,7 +73,10 @@ In the end we will send the invitations again.
 """
 if __name__ == '__main__':
     sockets_list = []
-    SERVER_IP = socket.gethostbyname(socket.gethostname()) 
+    # SERVER_IP = socket.gethostbyname(socket.gethostname()) 
+    dev_card='eth1'
+    test_card='eth2'
+    SERVER_IP=scapy.all.get_if_addr('eth1')
     PORT_NUM = 2101
     print(f"Server started,listening on IP address {SERVER_IP} \nCome To me baby")
     udp_socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
@@ -80,8 +84,14 @@ if __name__ == '__main__':
 
     sending_suggestions_thread = multiprocessing.Process(target=thread_send_Announcements, args=(udp_socket,))
     sending_suggestions_thread.start()
+<<<<<<< HEAD
 
     global tcp_socket
+=======
+    # while True:
+    #     pass
+    # global tcp_socket
+>>>>>>> f5ab53682cafd62132909f2f197b05d6b84b96c1
     tcp_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     tcp_socket.bind(('', PORT_NUM))
     tcp_socket.listen(2) #after 2 connections the socket will not accept new connections
@@ -106,11 +116,19 @@ if __name__ == '__main__':
             start_message = bytes(f"{Back.BLUE}Welcome to Quick Maths.{Style.RESET_ALL}\n{Fore.CYAN}Player 1: {group1}{Style.RESET_ALL}\n{Fore.YELLOW}Player 2: {group2}{Style.RESET_ALL}\n==\nPlease Answer the following question: \nHow much is {math_problem[1]}?","utf-8")
 
             for clientadd, group_name in sockets_list:
+<<<<<<< HEAD
                 clientadd.sendall(start_message)
 
             """
             Send the start_new_game function to the clients and the expected answer.
             """
+=======
+                try:
+                    clientadd.sendall(start_message)
+                except:
+                    print("Couldn't send to one of the clients")
+                    pass
+>>>>>>> f5ab53682cafd62132909f2f197b05d6b84b96c1
             game1 = executor.submit(start_new_game, sockets_list[0][0],math_problem[0])
             game2 = executor.submit(start_new_game, sockets_list[1][0],math_problem[0])
 
@@ -121,9 +139,13 @@ if __name__ == '__main__':
 
             if group1_result[0] =="Tie" and group2_result[0]=="Tie":
                 print("Tie")
-                result_message = bytes("Time's up {Back.MAGENTA}loosers{Style.RESET_ALL}, it a Tie!", "utf-8")
+                result_message = bytes(f"Time's up {Back.MAGENTA}loosers{Style.RESET_ALL}, it a Tie!", "utf-8")
                 for clientadd, group_name in sockets_list:
-                            clientadd.sendall(result_message)
+                    try:
+                        clientadd.sendall(result_message)
+                    except:
+                        print("Couldn't send to one of the clients")
+                        pass
             else:
                 if group1_result[1]<group2_result[1]:
                     if group1_result[0]=="Winner":
