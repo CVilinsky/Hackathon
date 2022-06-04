@@ -10,25 +10,43 @@ from colorama import Fore, Style,Back
 
 winners_dict=DefaultDict(int) #Winners to get the highest score
 
-def send_broadcast_suggestion(upd_socket):
-    message = struct.pack('Ibh', 0xabcddcba, 0x2, 2101)
-    upd_socket.sendto(message, ("<broadcast>", 13117))
+"""
+thread_send_Announcements & send_broadcast_suggestion:
+Send the invitation to join the game through the given udp_socket.
+The invitation sent is a broadcast message, and every 1 second.
+"""
+
+def send_broadcast_suggestion(udp_socket):
+    message = struct.pack('Ibh', 0xabcddcba, 0x2, 2101) #unsigned integer, signed char and a short (16 bit integer)
+    udp_socket.sendto(message, ("<broadcast>", 13117))
 
 
-def thread_send_Announcements(upd_socket):
-    threading.Timer(1.0, thread_send_Announcements, args=[upd_socket]).start()
-    send_broadcast_suggestion(upd_socket)
+def thread_send_Announcements(udp_socket):
+    threading.Timer(1.0, thread_send_Announcements, args=[udp_socket]).start()
+    send_broadcast_suggestion(udp_socket)
 
+"""
+randomize_math :
+Generates a simple math question, the output is a list.
+The list contains the expected answer [0] and a string representing the question [1].
+"""
 def randomize_math(): #Randomizes a math question
     num1=random.choice([1,2,3,4,5])
     num2=random.choice([1,2,3,4])
     expected=num1+num2
     return [expected,f'{num1} + {num2}']
 
+
+"""
+start_new_game:
+The game will end in 10 seconds, the server waits for answers from both clients.
+The answer is sent with the current time stamp [1], the one who answered first either wins or loses depending on their answer.
+If neither answered after 10 seconds it's a tie.
+"""
 def start_new_game(client,expected): #the game that everyone plays
     start_time = time.time()
     while time.time() - start_time < 10:
-        client.settimeout(10)
+        client.settimeout(10) #will exit once 10 seconds have passed
         try:
             message = client.recv(1024).decode("utf-8")
             if message==expected:
@@ -39,26 +57,37 @@ def start_new_game(client,expected): #the game that everyone plays
             pass
     return ("Tie",time.time())
 
+"""
+Explanations:
+Create a UDP socket that will wait for connections and send invitations.
+Create a TCP socket that will get 2 connections from clients who were invited through the UDP socket.
+The TCP socket will wait for 2 connections, each connection is saved into a list that will have two tuples one for each client.
+We will communicate with the clients through the address recieved from them which is saved in [0] of the tuple.
 
+The game begins once the question is sent to both of the participants.  
+We will wait for both clients to respond, the one who responded first will either win or lose depending on their answer.
+The winner will be saved inside a dictionary that represents the leaderboard.
+
+In the end we will send the invitations again.  
+"""
 if __name__ == '__main__':
     sockets_list = []
     SERVER_IP = socket.gethostbyname(socket.gethostname()) 
     PORT_NUM = 2101
     print(f"Server started,listening on IP address {SERVER_IP} \nCome To me baby")
-    upd_socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-    upd_socket.setsockopt(socket.SOL_SOCKET, socket.SO_BROADCAST, 1)
+    udp_socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+    udp_socket.setsockopt(socket.SOL_SOCKET, socket.SO_BROADCAST, 1)
 
-    sending_suggestions_thread = multiprocessing.Process(target=thread_send_Announcements, args=(upd_socket,))
+    sending_suggestions_thread = multiprocessing.Process(target=thread_send_Announcements, args=(udp_socket,))
     sending_suggestions_thread.start()
-    # while True:
-    #     pass
+
     global tcp_socket
     tcp_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     tcp_socket.bind(('', PORT_NUM))
     tcp_socket.listen(2) #after 2 connections the socket will not accept new connections
     with concurrent.futures.ThreadPoolExecutor(2) as executor:
         while True:
-            # tcp_socket.settimeout(30)
+
             client, address_1 = tcp_socket.accept()
             group_name = client.recv(1024).decode("utf-8")
             sockets_list.append((client, group_name))
@@ -78,6 +107,10 @@ if __name__ == '__main__':
 
             for clientadd, group_name in sockets_list:
                 clientadd.sendall(start_message)
+
+            """
+            Send the start_new_game function to the clients and the expected answer.
+            """
             game1 = executor.submit(start_new_game, sockets_list[0][0],math_problem[0])
             game2 = executor.submit(start_new_game, sockets_list[1][0],math_problem[0])
 
@@ -123,5 +156,5 @@ if __name__ == '__main__':
             print(f"{Fore.RED}Game over{Style.RESET_ALL}, sending out offer requests... ")
 
             sockets_list = []
-            sending_suggestions_thread = multiprocessing.Process(target=thread_send_Announcements, args=(upd_socket,))
+            sending_suggestions_thread = multiprocessing.Process(target=thread_send_Announcements, args=(udp_socket,))
             sending_suggestions_thread.start()

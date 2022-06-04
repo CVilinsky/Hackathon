@@ -2,22 +2,32 @@ import socket
 import struct
 import getch
 import time
-import signal
+import signal #send software interrupts in linux
 
 TIMEOUT=10
 def inter_timeout(signum, frame):
     pass
 signal.signal(signal.SIGALRM, inter_timeout)
 
+"""
+First of all we start the client, and wait for udp messages in port 13117
+We will wait for a message that is packed as 'ibh'  that starts with the magic cookie, followed by the number 2.
+If the stacture matches the expected stracture we will read the last part of the message which is the port we need to connect to.
+We will close the udp socket and open a new tcp socket that will try to connect the given port.
+We  send our name and start the game, once the math question is recived we use getch to get a input from the user.
+If 10 seconds have passed, we will send a empty message.
+In the end we recive a message stating either we won or lost, and then we will close the tcp socket.
+"""
+
 if __name__ == '__main__':
     while True:
         print("Client started, listening for offer requests...")
-        UPD_PORT = 13117
+        UDP_PORT = 13117
         tcp_connected=False
         while not tcp_connected:
             udp_sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
             udp_sock.setsockopt(socket.SOL_SOCKET, socket.SO_BROADCAST, 1)
-            udp_sock.bind(('', UPD_PORT))
+            udp_sock.bind(('', UDP_PORT))
             stop = False
             data = None
             while not stop:
